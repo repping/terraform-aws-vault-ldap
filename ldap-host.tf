@@ -36,7 +36,7 @@ resource "aws_instance" "ldap-host" {
     delete_on_termination = true
   }
 
-  tags = local.tags
+  tags        = merge({ Name = "ldap-host-${var.vault-name}-${module.vault.random_string}" }, local.tags)
 }
 
 resource "aws_security_group" "ldap-host" {
@@ -48,7 +48,7 @@ resource "aws_security_group" "ldap-host" {
     create_before_destroy = true
   }
   
-  tags        = local.tags
+  tags        = merge({ Name = "ldap-host-${var.vault-name}-${module.vault.random_string}" }, local.tags)
 }
 
 # Make an iam instance profile
