@@ -1,0 +1,4 @@
+region                   = "us-east-1"
+domain                   = "example.com"
+owner                    = "your name"
+vault-name               = "vprod"
