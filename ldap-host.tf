@@ -16,6 +16,7 @@ resource "aws_instance" "ldap-host" {
   instance_type               = "t3.medium"
   key_name                    = aws_key_pair.ssh_pub_key.key_name
   subnet_id                   = module.vault.bastion_subnet_id
+  associate_public_ip_address = true
   user_data                   = ""
   # user_data = templatefile("${path.module}/templates/user_data_bastion.sh.tpl",
   #   {
@@ -43,6 +44,48 @@ resource "aws_security_group" "ldap-host" {
   description = "ldap-host - Traffic to/from the ldap-host"
   name        = "${var.vault-name}-ldap-host"
   vpc_id      = data.terraform_remote_state.def-env.outputs.vpc[0].id
+
+  ingress {
+    description      = "SSH from VPC"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = [try(data.aws_vpc.default.cidr_block, "10.0.0.0/16")]
+  }
+
+  ingress {
+    description      = "HTTPS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  ingress {
+    description      = "HTTP from VPC"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  ingress {
+    description      = "LDAP from VPC"
+    from_port        = 389
+    to_port          = 389
+    protocol         = "tcp"
+    cidr_blocks      = [try(data.aws_vpc.default.cidr_block, "10.0.0.0/16")]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
   
   lifecycle {
     create_before_destroy = true
